@@ -1,5 +1,5 @@
 <template>
-  <form class="flex h-full flex-col gap-6 md:gap-8 p-4 md:p-6 overflow-hidden">
+  <form class="flex h-screen flex-col gap-6 md:gap-8 p-4 md:p-6 overflow-auto">
     <fieldset class="grid gap-4 md:gap-6 rounded-lg border p-4 md:p-6 shrink-0 bg-card">
       <legend class="px-2 text-sm font-medium">对话设置</legend>
       
@@ -144,7 +144,7 @@
         </div>
 
         <!-- 上下文对话列表 - 减小高度到 300px -->
-        <div class="h-[300px] overflow-y-auto pr-2">
+        <div class="overflow-y-auto pr-2">
           <div class="space-y-6">
             <div 
               v-for="(message, index) in chatSettings.contextMessages" 

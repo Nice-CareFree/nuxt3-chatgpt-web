@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full w-[300px] flex-col border-r">
     <!-- 新建对话按钮 -->
-    <div class="p-4 border-b">
+    <div class="p-2 border-b">
       <Button 
         class="w-full" 
         type="button" 

@@ -81,7 +81,7 @@
       <aside class="md:relative fixed bottom-0 left-0 right-0 z-50 bg-background md:border-r border-t md:border-t-0">
         <div class="md:flex-col flex">
           <!-- Logo - 仅PC端显示 -->
-          <div class="hidden md:flex h-[52px] items-center justify-center border-b">
+          <div class="hidden md:flex h-[53px] items-center justify-center border-b">
             <Triangle class="h-7 w-7" />
           </div>
 
@@ -113,7 +113,7 @@
           </nav>
 
           <!-- 底部导航 - 仅PC端显示 -->
-          <div class="hidden md:block border-t p-2">
+          <!-- <div class="hidden md:block border-t p-2">
             <nav class="flex flex-col space-y-1 items-center">
               <TooltipProvider v-for="item in bottomNavItems" :key="item.label">
                 <Tooltip>
@@ -128,7 +128,7 @@
                 </Tooltip>
               </TooltipProvider>
             </nav>
-          </div>
+          </div> -->
         </div>
       </aside>
 
@@ -181,9 +181,9 @@ const showSettings = ref(false)
 // 导航项配置
 const navItems = [
   { label: 'Playground', icon: SquareTerminal, active: true },
-  { label: 'Models', icon: Bot },
-  { label: 'API', icon: Code2 },
-  { label: 'Documentation', icon: Book },
+  // { label: 'Models', icon: Bot },
+  // { label: 'API', icon: Code2 },
+  { label: 'Documentation', icon: Book, onClick: () => window.open('https://github.com/Nice-CareFree/nuxt3-chatgpt-web/issues') },
   { 
     label: 'Settings', 
     icon: Settings2,

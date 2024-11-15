@@ -165,7 +165,7 @@
               这是一个基于 Vue 3 + Nuxt 3 开发的 AI 聊天应用...
             </p>
             <p class="text-muted-foreground">
-              项目开源地址: <a href="https://github.com/xxx" class="text-primary">GitHub</a>
+              项目开源地址: <a href="https://github.com/Nice-CareFree/nuxt3-chatgpt-web" class="text-primary">GitHub</a>
             </p>
           </div>
         </TabsContent>
