@@ -112,7 +112,7 @@ function createTray() {
     }
   ])
 
-  tray.setToolTip('ChatGPT Desktop')
+  tray.setToolTip('奈斯AI-Web')
   tray.setContextMenu(contextMenu)
 
   // 点击托盘图标显示主窗口

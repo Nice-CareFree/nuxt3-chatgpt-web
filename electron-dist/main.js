@@ -93,7 +93,7 @@ function createTray() {
             }
         }
     ]);
-    tray.setToolTip('Your App Name');
+    tray.setToolTip('奈斯AI-Web');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
         if (mainWindow?.isVisible()) {

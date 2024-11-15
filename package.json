@@ -1,5 +1,11 @@
 {
   "name": "nuxt-app",
+  "version": "1.0.0",
+  "description": "A ChatGPT Desktop Application built with Nuxt3 and Electron",
+  "author": {
+    "name": "CareFree",
+    "email": "www.kfmao.com@gmail.com"
+  },
   "private": true,
   "scripts": {
     "build": "nuxt build",
