@@ -5,4 +5,12 @@ node_modules
 .husky
 .vscode
 *.md
-.env 
+.env
+dist
+electron-dist
+coverage
+.github
+.idea
+*.log
+.DS_Store
+.cache 
