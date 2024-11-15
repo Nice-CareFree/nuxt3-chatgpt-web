@@ -1,203 +1,224 @@
 <template>
   <form class="flex h-screen flex-col gap-6 md:gap-8 p-4 md:p-6 overflow-auto">
-    <fieldset class="grid gap-4 md:gap-6 rounded-lg border p-4 md:p-6 shrink-0 bg-card">
-      <legend class="px-2 text-sm font-medium">对话设置</legend>
-      
-      <!-- 模型选择 -->
-      <div class="grid gap-2 md:gap-3">
-        <Label for="model">模型</Label>
-        <Select v-model="chatSettings.model">
-          <SelectTrigger id="model" class="items-start">
-            <SelectValue>
-              <template v-if="chatSettings.model">
-                <div class="flex items-center gap-3">
-                  <component :is="getModelIcon(chatSettings.model)" class="size-5 shrink-0" />
-                  <div class="truncate">
-                    {{ getModelName(chatSettings.model) }}
-                  </div>
-                </div>
-              </template>
-              <template v-else>
-                选择模型
-              </template>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <!-- 全局预设模型 -->
-            <SelectGroup>
-              <SelectLabel>预设模</SelectLabel>
-              <SelectItem 
-                v-for="model in modelStore.globalModels"
-                :key="model.id"
-                :value="model.id"
-              >
-                <div class="flex items-start gap-3 text-muted-foreground">
-                  <component :is="getModelIcon(model.id)" class="size-5 shrink-0" />
-                  <div class="grid gap-0.5">
-                    <p class="font-medium text-foreground">{{ model.name }}</p>
-                    <p class="text-xs">{{ model.description }}</p>
-                  </div>
-                </div>
-              </SelectItem>
-            </SelectGroup>
+    <!-- 对话设置折叠面板 -->
+    <Collapsible defaultOpen>
+      <CollapsibleTrigger class="flex w-full items-center justify-between rounded-lg border p-4 font-medium">
+        <div class="flex items-center gap-2">
+          <Settings2 class="size-4" />
+          对话设置
+        </div>
+        <ChevronDown class="size-4" />
+      </CollapsibleTrigger>
+      <CollapsibleContent class="pt-4">
+        <fieldset class="grid gap-4 md:gap-6 rounded-lg border p-4 md:p-6 shrink-0 bg-card">
+          <legend class="px-2 text-sm font-medium">对话设置</legend>
+          
+          <!-- 模型选择 -->
+          <div class="grid gap-2 md:gap-3">
+            <Label for="model">模型</Label>
+            <Select v-model="chatSettings.model">
+              <SelectTrigger id="model" class="items-start">
+                <SelectValue>
+                  <template v-if="chatSettings.model">
+                    <div class="flex items-center gap-3">
+                      <component :is="getModelIcon(chatSettings.model)" class="size-5 shrink-0" />
+                      <div class="truncate">
+                        {{ getModelName(chatSettings.model) }}
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    选择模型
+                  </template>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <!-- 全局预设模型 -->
+                <SelectGroup>
+                  <SelectLabel>预设模</SelectLabel>
+                  <SelectItem 
+                    v-for="model in modelStore.globalModels"
+                    :key="model.id"
+                    :value="model.id"
+                  >
+                    <div class="flex items-start gap-3 text-muted-foreground">
+                      <component :is="getModelIcon(model.id)" class="size-5 shrink-0" />
+                      <div class="grid gap-0.5">
+                        <p class="font-medium text-foreground">{{ model.name }}</p>
+                        <p class="text-xs">{{ model.description }}</p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectGroup>
 
-            <!-- 自定义模型 -->
-            <SelectGroup v-if="modelStore.customModels.length">
-              <SelectLabel>自定义模型</SelectLabel>
-              <SelectItem 
-                v-for="model in modelStore.customModels"
-                :key="model.id"
-                :value="model.id"
-              >
-                <div class="flex items-start gap-3 text-muted-foreground">
-                  <component :is="getModelIcon(model.id)" class="size-5 shrink-0" />
-                  <div class="grid gap-0.5">
-                    <p class="font-medium text-foreground">{{ model.name }}</p>
-                    <p class="text-xs">{{ model.description }}</p>
-                  </div>
-                </div>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <!-- 对话参数设置 -->
-      <div class="space-y-4 md:space-y-6">
-        <!-- Temperature -->
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="temperature">Temperature</Label>
-            <span class="text-sm text-muted-foreground">
-              {{ chatSettings.temperature[0].toFixed(2) }}
-            </span>
+                <!-- 自定义模型 -->
+                <SelectGroup v-if="modelStore.customModels.length">
+                  <SelectLabel>自定义模型</SelectLabel>
+                  <SelectItem 
+                    v-for="model in modelStore.customModels"
+                    :key="model.id"
+                    :value="model.id"
+                  >
+                    <div class="flex items-start gap-3 text-muted-foreground">
+                      <component :is="getModelIcon(model.id)" class="size-5 shrink-0" />
+                      <div class="grid gap-0.5">
+                        <p class="font-medium text-foreground">{{ model.name }}</p>
+                        <p class="text-xs">{{ model.description }}</p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
-          <Slider
-            v-model="chatSettings.temperature"
-            :min="0"
-            :max="2"
-            :step="0.01"
-            class="w-full"
-          />
-          <p class="text-xs text-muted-foreground">
-            较高的值会使输出更加随机，而较低的值会使其更加集中和确定。
-          </p>
-        </div>
 
-        <!-- Top P -->
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="top-p">Top P</Label>
-            <span class="text-sm text-muted-foreground">
-              {{ chatSettings.topP[0].toFixed(2) }}
-            </span>
-          </div>
-          <Slider
-            v-model="chatSettings.topP"
-            :min="0"
-            :max="1"
-            :step="0.01"
-            class="w-full"
-          />
-          <p class="text-xs text-muted-foreground">
-            控制模型输出的多样性，较高的值会产生更多样的结果。
-          </p>
-        </div>
-
-        <!-- Top K -->
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="top-k">Top K</Label>
-            <span class="text-sm text-muted-foreground">
-              {{ chatSettings.topK[0] }}
-            </span>
-          </div>
-          <Slider
-            v-model="chatSettings.topK"
-            :min="0"
-            :max="100"
-            :step="1"
-            class="w-full"
-          />
-          <p class="text-xs text-muted-foreground">
-            限制模型在每一步只考虑概率最高的K个词。0表示不限制。
-          </p>
-        </div>
-      </div>
-    </fieldset>
-
-    <!-- 上下文对话 -->
-    <div class="flex-1 min-h-0">
-      <fieldset class="h-full grid grid-rows-[auto,1fr] gap-4 md:gap-6 rounded-lg border p-4 md:p-6 bg-card">
-        <div class="flex items-center justify-between">
-          <legend class="px-2 text-sm font-medium">上下文对话</legend>
-          <Button 
-            type="button"
-            variant="outline" 
-            size="sm"
-            @click.prevent="addContextMessage"
-            class="gap-1.5"
-          >
-            <Plus class="h-4 w-4" />
-            新增
-          </Button>
-        </div>
-
-        <!-- 上下文对话列表 - 减小高度到 300px -->
-        <div class="overflow-y-auto pr-2">
-          <div class="space-y-6">
-            <div 
-              v-for="(message, index) in chatSettings.contextMessages" 
-              :key="index"
-              class="relative grid gap-4 rounded-lg border p-6 bg-muted/50"
-            >
-              <!-- 删除按钮 -->
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                class="absolute right-3 top-3 h-6 w-6 hover:bg-destructive/90 hover:text-destructive-foreground"
-                @click.prevent="removeContextMessage(index)"
-              >
-                <X class="h-4 w-4" />
-              </Button>
-
-              <!-- 角色选择 -->
-              <div class="grid gap-2">
-                <Label>角色</Label>
-                <Select v-model="message.role">
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="选择角色" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="system">系统</SelectItem>
-                    <SelectItem value="assistant">助手</SelectItem>
-                    <SelectItem value="user">用户</SelectItem>
-                  </SelectContent>
-                </Select>
+          <!-- 对话参数设置 -->
+          <div class="space-y-4 md:space-y-6">
+            <!-- Temperature -->
+            <div class="grid gap-3">
+              <div class="flex items-center justify-between">
+                <Label for="temperature">Temperature</Label>
+                <span class="text-sm text-muted-foreground">
+                  {{ chatSettings.temperature[0].toFixed(2) }}
+                </span>
               </div>
+              <Slider
+                v-model="chatSettings.temperature"
+                :min="0"
+                :max="2"
+                :step="0.01"
+                class="w-full"
+              />
+              <p class="text-xs text-muted-foreground">
+                较高的值会使输出更加随机，而较低的值会使其更加集中和确定。
+              </p>
+            </div>
 
-              <!-- 内容输入 -->
-              <div class="grid gap-2">
-                <Label>内容</Label>
-                <Textarea
-                  v-model="message.content"
-                  :rows="3"
-                  placeholder="输入对话内容..."
-                  class="resize-none"
-                />
+            <!-- Top P -->
+            <div class="grid gap-3">
+              <div class="flex items-center justify-between">
+                <Label for="top-p">Top P</Label>
+                <span class="text-sm text-muted-foreground">
+                  {{ chatSettings.topP[0].toFixed(2) }}
+                </span>
+              </div>
+              <Slider
+                v-model="chatSettings.topP"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                class="w-full"
+              />
+              <p class="text-xs text-muted-foreground">
+                控制模型输出的多样性，较高的值会产生更多样的结果。
+              </p>
+            </div>
+
+            <!-- Top K -->
+            <div class="grid gap-3">
+              <div class="flex items-center justify-between">
+                <Label for="top-k">Top K</Label>
+                <span class="text-sm text-muted-foreground">
+                  {{ chatSettings.topK[0] }}
+                </span>
+              </div>
+              <Slider
+                v-model="chatSettings.topK"
+                :min="0"
+                :max="100"
+                :step="1"
+                class="w-full"
+              />
+              <p class="text-xs text-muted-foreground">
+                限制模型在每一步只考虑概率最高的K个词。0表示不限制。
+              </p>
+            </div>
+          </div>
+        </fieldset>
+      </CollapsibleContent>
+    </Collapsible>
+
+    <!-- 上下文对话折叠面板 -->
+    <Collapsible defaultOpen class="flex-1 min-h-0">
+      <CollapsibleTrigger class="flex w-full items-center justify-between rounded-lg border p-4 font-medium">
+        <div class="flex items-center gap-2">
+          <MessageSquare class="size-4" />
+          上下文对话
+        </div>
+        <ChevronDown class="size-4" />
+      </CollapsibleTrigger>
+      <CollapsibleContent class="pt-4 h-full">
+        <fieldset class="h-full grid grid-rows-[auto,1fr] gap-4 md:gap-6 rounded-lg border p-4 md:p-6 bg-card">
+          <div class="flex items-center justify-between">
+            <legend class="px-2 text-sm font-medium">上下文对话</legend>
+            <Button 
+              type="button"
+              variant="outline" 
+              size="sm"
+              @click.prevent="addContextMessage"
+              class="gap-1.5"
+            >
+              <Plus class="h-4 w-4" />
+              新增
+            </Button>
+          </div>
+
+          <!-- 上下文对话列表 - 减小高度到 300px -->
+          <div class="overflow-y-auto pr-2">
+            <div class="space-y-6">
+              <div 
+                v-for="(message, index) in chatSettings.contextMessages" 
+                :key="index"
+                class="relative grid gap-4 rounded-lg border p-6 bg-muted/50"
+              >
+                <!-- 删除按钮 -->
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="absolute right-3 top-3 h-6 w-6 hover:bg-destructive/90 hover:text-destructive-foreground"
+                  @click.prevent="removeContextMessage(index)"
+                >
+                  <X class="h-4 w-4" />
+                </Button>
+
+                <!-- 角色选择 -->
+                <div class="grid gap-2">
+                  <Label>角色</Label>
+                  <Select v-model="message.role">
+                    <SelectTrigger class="w-full">
+                      <SelectValue placeholder="选择角色" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system">系统</SelectItem>
+                      <SelectItem value="assistant">助手</SelectItem>
+                      <SelectItem value="user">用户</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <!-- 内容输入 -->
+                <div class="grid gap-2">
+                  <Label>内容</Label>
+                  <Textarea
+                    v-model="message.content"
+                    :rows="3"
+                    placeholder="输入对话内容..."
+                    class="resize-none"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </fieldset>
-    </div>
+        </fieldset>
+      </CollapsibleContent>
+    </Collapsible>
   </form>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick } from 'vue'
-import { Bird, X } from 'lucide-vue-next'
+import { Bird, X, Settings2, ChevronDown, MessageSquare } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -217,6 +238,11 @@ import { useModelStore } from '@/stores/model'
 import { storeToRefs } from 'pinia'
 import { useDebounceFn } from '@vueuse/core'
 import { Plus} from 'lucide-vue-next'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible'
 
 const chatStore = useChatStore()
 const modelStore = useModelStore()

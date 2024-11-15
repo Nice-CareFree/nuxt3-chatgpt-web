@@ -1,29 +1,95 @@
 <template>
-  <div class="relative mt-2 md:mt-4">
+  <form 
+    class="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+    @submit.prevent="handleSubmit"
+  >
+    <Label for="message" class="sr-only">
+      消息
+    </Label>
     <Textarea
+      id="message"
       v-model="input"
       placeholder="输入消息..."
-      :rows="1"
-      class="resize-none pr-12 md:text-base text-sm"
+      class="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
       @keydown.enter.prevent="handleSubmit"
     />
-    <Button
-      class="absolute right-2 top-1/2 -translate-y-1/2"
-      size="icon"
-      :disabled="isLoading || !input.trim()"
-      @click="handleSubmit"
-    >
-      <Send v-if="!isLoading" class="md:h-4 md:w-4 h-3.5 w-3.5" />
-      <Loader2 v-else class="md:h-4 md:w-4 h-3.5 w-3.5 animate-spin" />
-    </Button>
-  </div>
+    <div class="flex items-center p-3 pt-0">
+      <Popover>
+        <PopoverTrigger as-child>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            type="button"
+            @click="handleFileUpload"
+          >
+            <Paperclip class="size-4" :class="{'text-primary': uploadedFile}" />
+            <span class="sr-only">上传文件</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent v-if="uploadedFile" class="w-80">
+          <div class="flex flex-col gap-4 w-full overflow-hidden">
+            <div class="space-y-2">
+              <h4 class="font-medium leading-none">已上传文件</h4>
+              <p class="text-sm text-muted-foreground truncate">{{ uploadedFile.name }}</p>
+            </div>
+            <!-- 图片预览 -->
+            <img v-if="isImage" :src="filePreview" class="max-h-40 object-contain" />
+            <!-- 文档预览 -->
+            <div v-else class="flex items-center gap-2">
+              <File class="size-8" />
+              <span class="text-sm">{{ uploadedFile.name }}</span>
+            </div>
+            <!-- 删除按钮 -->
+            <Button variant="destructive" size="sm" @click="removeFile">
+              删除文件
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      <!-- 隐藏的文件上传输入框 -->
+      <input
+        ref="fileInput"
+        type="file"
+        class="hidden"
+        @change="onFileSelected"
+      />
+      
+      <Button 
+        type="submit" 
+        size="sm" 
+        class="ml-auto gap-1.5"
+        :disabled="isLoading || (!input.trim() && !uploadedFile)"
+      >
+        <template v-if="!isLoading">
+          发送消息
+          <CornerDownLeft class="size-3.5" />
+        </template>
+        <template v-else>
+          <Loader2 class="size-3.5 animate-spin" />
+        </template>
+      </Button>
+    </div>
+  </form>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import { Send, Loader2 } from 'lucide-vue-next'
+import { ref, nextTick, computed, onUnmounted } from 'vue'
+import { CornerDownLeft, Loader2, Paperclip, File } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { createChatCompletion } from '@/utils/api'
 import { useChatStore } from '@/stores/chat'
 import { useModelStore } from '@/stores/model'
@@ -64,11 +130,60 @@ const STREAM_TIMEOUT = 30000 // 30秒超时
 const EMIT_THROTTLE = 100 // 100ms
 const lastEmitTime = ref(0)
 
+// 添加文件上传相关的代码
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploadedFile = ref<File | null>(null)
+const filePreview = ref('')
+
+const isImage = computed(() => {
+  return uploadedFile.value?.type.startsWith('image/')
+})
+
+const handleFileUpload = () => {
+  fileInput.value?.click()
+}
+
+const onFileSelected = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file) {
+    uploadedFile.value = file
+    if (isImage.value) {
+      // 将图片转换为base64
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        filePreview.value = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+}
+
+const removeFile = () => {
+  if (filePreview.value) {
+    URL.revokeObjectURL(filePreview.value)
+  }
+  uploadedFile.value = null
+  filePreview.value = ''
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
 const handleSubmit = async () => {
-  if (!input.value.trim() || isLoading.value) return
+  if ((!input.value.trim() && !uploadedFile.value) || isLoading.value) return
   
-  const message = input.value
+  let message = input.value
+
+  // 如果有文件,添加到消息末尾
+  if (uploadedFile.value) {
+    const fileContent = isImage.value 
+      ? `\n![${uploadedFile.value.name}](${filePreview.value})`
+      : `\n[${uploadedFile.value.name}](file://${uploadedFile.value.name})`
+    message += fileContent
+  }
+
   input.value = ''
+  removeFile()
   isLoading.value = true
   
   // 先发送用户消息并触发滚动
@@ -98,7 +213,7 @@ const handleSubmit = async () => {
       topP: props.topP
     })
 
-    // 构建消息数组
+    // 构建息数组
     const messages = [
       // 1. 上下文对话列表 - 确保非空且内容不为空
       ...(props.contextMessages?.filter(msg => msg.content.trim()) || []),
@@ -155,6 +270,13 @@ const handleSubmit = async () => {
     isLoading.value = false
   }
 }
+
+// 组件卸载时清理
+onUnmounted(() => {
+  if (filePreview.value) {
+    URL.revokeObjectURL(filePreview.value)
+  }
+})
 </script>
 
 <style scoped>
