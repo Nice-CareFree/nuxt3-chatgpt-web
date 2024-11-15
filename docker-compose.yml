@@ -2,13 +2,17 @@ version: '3'
 
 services:
   nuxt-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: carefreezi/nuxt3-chatgpt-web:latest
     container_name: nuxt3-chatgpt-web
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - NITRO_HOST=0.0.0.0
+      - NITRO_PORT=3000
     deploy:
       resources:
         limits:
@@ -19,4 +23,6 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
-      retries: 3 
+      retries: 3
+    volumes:
+      - ./.output:/app/.output

@@ -1,13 +1,15 @@
 {
   "name": "nuxt-app",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "electron:dev": "concurrently \"cross-env NITRO_HOST=127.0.0.1 NITRO_PORT=3000 nuxt dev --port 3000\" \"wait-on tcp:3000 && cross-env NODE_ENV=development electron .\"",
+    "electron:build": "nuxt generate && electron-builder",
+    "electron:generate": "nuxt generate && electron-builder"
   },
   "dependencies": {
     "@iconify/vue": "^4.1.2",
@@ -32,7 +34,52 @@
   },
   "devDependencies": {
     "shadcn-nuxt": "^0.11.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.1",
+    "electron-serve": "^1.3.0",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0",
+    "cross-env": "^7.0.3"
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.carefreezi.chatgpt",
+    "productName": "ChatGPT Desktop",
+    "directories": {
+      "output": "electron-dist"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*"
+    ],
+    "win": {
+      "icon": "public/icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "icon": "public/icons/icon.icns",
+      "target": ["dmg"],
+      "darkModeSupport": true
+    },
+    "linux": {
+      "icon": "public/icons/icon.png",
+      "target": ["AppImage"],
+      "category": "Network"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
 }

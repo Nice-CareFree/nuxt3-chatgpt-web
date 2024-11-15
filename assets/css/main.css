@@ -51,3 +51,55 @@ body {
 .md-editor{
     background-color: transparent !important;
 }
+
+/* 添加以下样式 */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 添加在文件末尾 */
+.bg-background {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+/* 确保窗口拖动区域正确工作 */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 在文件末尾添加 */
+.window-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 12px;
+  background: var(--background);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* 修改拖动区域样式 */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+}
