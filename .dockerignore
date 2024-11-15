@@ -7,7 +7,6 @@ node_modules
 *.md
 .env
 dist
-electron-dist
 coverage
 .github
 .idea
