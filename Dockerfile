@@ -29,8 +29,13 @@ RUN npm install -g electron-builder
 # 复制源代码
 COPY . .
 
+# 设置构建环境变量
+ENV NODE_ENV=production
+ENV NITRO_PRESET=node-server
+
 # 构建应用
 RUN pnpm build && \
+    ls -la .output/server && \
     pnpm electron:build && \
     rm -rf node_modules && \
     pnpm install --prod --no-frozen-lockfile
@@ -40,8 +45,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# 只复制必要的文件
-COPY --from=builder /app/.output ./.output
+# 复制构建产物
+COPY --from=builder /app/.output/ ./.output/
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/electron-dist ./electron-dist
 
