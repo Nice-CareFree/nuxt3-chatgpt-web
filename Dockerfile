@@ -1,19 +1,17 @@
 # 构建阶段
 FROM node:18-alpine AS builder
 
-# 更新包索引并安装必要工具
-RUN apk update && \
-    apk add --no-cache \
-    git \
-    python3 \
-    build-base \
-    libc6-compat
+# 更新软件源并安装必要工具
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache git python3 make g++
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
 
 # 设置 npm 和 pnpm 配置
-RUN pnpm config set registry https://registry.npmjs.org && \
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    pnpm config set registry https://registry.npmmirror.com/ && \
     pnpm config set progress false
 
 # 设置工作目录
