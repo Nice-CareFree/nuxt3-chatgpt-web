@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.output
+.git
+.husky
+.vscode
+*.md
+.env 

@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  nuxt-app:
+    build: .
+    image: carefreezi/nuxt3-chatgpt-web:latest
+    container_name: nuxt3-chatgpt-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
