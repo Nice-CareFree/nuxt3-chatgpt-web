@@ -1,8 +1,13 @@
 # 构建阶段
 FROM node:18-alpine AS builder
 
-# 安装必要工具
-RUN apk add --no-cache git python3 make g++
+# 更新包索引并安装必要工具
+RUN apk update && \
+    apk add --no-cache \
+    git \
+    python3 \
+    build-base \
+    libc6-compat
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
