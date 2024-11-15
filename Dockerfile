@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 # 更新软件源并安装必要工具
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
@@ -9,20 +9,27 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 全局安装 pnpm
 RUN npm install -g pnpm
 
+# 设置 npm 和 pnpm 配置
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    pnpm config set registry https://registry.npmmirror.com/ && \
+    pnpm config set progress false
+
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 pnpm-lock.yaml
-COPY package.json pnpm-lock.yaml ./
+# 复制 package.json
+COPY package.json ./
 
-# 使用 pnpm 安装依赖，只安装生产依赖
-RUN pnpm install --prod --frozen-lockfile
+# 使用 pnpm 安装依赖
+RUN pnpm install --prod --no-frozen-lockfile
 
 # 复制源代码
 COPY . .
 
 # 构建应用
-RUN pnpm build
+RUN pnpm build && \
+    rm -rf node_modules && \
+    pnpm install --prod --no-frozen-lockfile
 
 # 运行阶段
 FROM node:18-alpine
@@ -42,4 +49,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # 启动命令
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"] 
