@@ -45,7 +45,7 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5(magicast@0.3.5)(rollup@4.26.0)(vue@3.5.12(typescript@5.6.3))
       pinia:
-        specifier: ^2.2.6
+        specifier: ^2.1.7
         version: 2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))
       radix-vue:
         specifier: ^1.9.9
@@ -66,9 +66,6 @@ importers:
         specifier: latest
         version: 4.4.5(vue@3.5.12(typescript@5.6.3))
     devDependencies:
-      '@types/node':
-        specifier: ^20.17.6
-        version: 20.17.6
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
