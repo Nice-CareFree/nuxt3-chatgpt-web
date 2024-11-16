@@ -1,5 +1,5 @@
 # 构建阶段
-FROM registry.npmmirror.com/node:18-alpine AS builder
+FROM node:18-alpine AS builder
 
 # 更新软件源并安装必要工具
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
