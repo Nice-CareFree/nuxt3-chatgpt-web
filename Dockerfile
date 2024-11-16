@@ -1,6 +1,5 @@
 # 构建阶段
-FROM node:18 AS builder  # 改用完整 node 镜像而不是 alpine
-
+FROM node:18 AS builder
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     git \
