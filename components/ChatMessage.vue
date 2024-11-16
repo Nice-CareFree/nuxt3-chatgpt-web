@@ -1,6 +1,6 @@
 <template>
   <div :class="[
-    'flex gap-3 md:p-4 p-3 rounded-lg',
+    'flex gap-3 md:p-4 p-3 rounded-lg relative group',
     message.role === 'assistant' ? 'bg-muted/100' : 'bg-background',
     message.error ? 'border-red-200 bg-red-50 dark:bg-red-950/50' : ''
   ]">
@@ -19,13 +19,60 @@
         {{ formattedTime }}
       </div>
     </div>
+    
+    <Button
+      variant="ghost"
+      size="icon"
+      class="absolute right-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      @click.stop="copyContent"
+    >
+      <Copy v-if="!copied" class="h-4 w-4 text-muted-foreground hover:text-primary" />
+      <Check v-else class="h-4 w-4 text-green-500" />
+    </Button>
+
+    <Button
+      variant="ghost"
+      size="icon"
+      class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      @click.stop="confirmDelete"
+    >
+      <Trash2 class="h-4 w-4 text-muted-foreground hover:text-destructive" />
+    </Button>
+
+    <AlertDialog v-model:open="showDeleteDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确认删除消息</AlertDialogTitle>
+          <AlertDialogDescription>
+            此操作将永久删除该消息，无法恢复。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showDeleteDialog = false">取消</AlertDialogCancel>
+          <AlertDialogAction @click="handleDelete">删除</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { MdPreview } from "md-editor-v3"
 import "md-editor-v3/lib/style.css"
+import { Trash2, Copy, Check } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useChatStore } from '@/stores/chat'
 
 interface Message {
   role: 'system' | 'user' | 'assistant'
@@ -53,4 +100,57 @@ const formattedTime = computed(() => {
 const messageContent = computed(() => {
   return props.message.content
 })
+
+const chatStore = useChatStore()
+const showDeleteDialog = ref(false)
+
+const emit = defineEmits<{
+  delete: [timestamp: Date]
+}>()
+
+const confirmDelete = () => {
+  showDeleteDialog.value = true
+}
+
+const handleDelete = () => {
+  // 获取当前对话
+  const currentChat = chatStore.currentChat
+  if (!currentChat) return
+
+  // 从当前对话中删除消息
+  currentChat.messages = currentChat.messages.filter(
+    msg => msg.timestamp.getTime() !== props.message.timestamp.getTime()
+  )
+
+  // 保存到 localStorage
+  const chats = JSON.parse(localStorage.getItem('chats') || '[]')
+  const chatIndex = chats.findIndex((chat: any) => chat.id === currentChat.id)
+  
+  if (chatIndex !== -1) {
+    chats[chatIndex] = {
+      ...currentChat,
+      messages: currentChat.messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp.toISOString() // 转换日期为字符串
+      }))
+    }
+    localStorage.setItem('chats', JSON.stringify(chats))
+  }
+
+  showDeleteDialog.value = false
+}
+
+const copied = ref(false)
+
+const copyContent = async () => {
+  try {
+    await navigator.clipboard.writeText(props.message.content)
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('复制失败:', err)
+  }
+}
 </script> 

@@ -7,8 +7,9 @@ RUN apk update && \
     git \
     python3 \
     make \
-    g++ \
-    build-base
+    gcc \
+    musl-dev \
+    linux-headers
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
