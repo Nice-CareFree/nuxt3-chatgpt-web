@@ -2,9 +2,14 @@
 FROM node:18-alpine AS builder
 
 # 更新软件源并安装必要工具
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    apk update && \
-    apk add --no-cache git python3 make g++ wine64 mono
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    python3 \
+    make \
+    g++ \
+    wine64 \
+    mono-complete
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
