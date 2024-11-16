@@ -13,9 +13,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "docker:build": "nuxt build",
+    "docker:build": "nuxt build && nuxt generate && ./node_modules/.bin/electron-builder",
     "electron:dev": "concurrently \"cross-env NITRO_HOST=127.0.0.1 NITRO_PORT=3000 nuxt dev --port 3000\" \"wait-on tcp:3000 && cross-env NODE_ENV=development electron .\"",
-    "electron:build": "nuxt generate && electron-builder",
+    "electron:build": "nuxt generate && ./node_modules/.bin/electron-builder",
     "electron:generate": "nuxt generate && electron-builder"
   },
   "dependencies": {
