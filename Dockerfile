@@ -8,9 +8,9 @@ RUN corepack enable && corepack prepare pnpm@9.11.0 --activate
 # 复制package相关文件
 COPY package.json pnpm-lock.yaml ./
 
-# 安装所有依赖（包括devDependencies）
+# 安装依赖时不使用frozen-lockfile
 RUN pnpm config set registry https://registry.npmmirror.com/ && \
-    pnpm install --frozen-lockfile
+    pnpm install --no-frozen-lockfile
 
 # 构建阶段
 FROM node:18 AS builder
@@ -61,13 +61,9 @@ RUN corepack enable && corepack prepare pnpm@9.11.0 --activate
 # 复制package.json和lock文件
 COPY package.json pnpm-lock.yaml ./
 
-# 安装所有依赖，但排除一些纯开发工具
-# 这里我们需要保留electron相关的devDependencies
+# 安装依赖时不使用frozen-lockfile
 RUN pnpm config set registry https://registry.npmmirror.com/ && \
-    pnpm install --frozen-lockfile && \
-    # 可以选择性地删除一些确定不需要的开发依赖，但要保留electron相关的
-    rm -rf node_modules/@types && \
-    rm -rf node_modules/typescript && \
+    pnpm install --no-frozen-lockfile && \
     # 清理pnpm缓存
     pnpm store prune
 
