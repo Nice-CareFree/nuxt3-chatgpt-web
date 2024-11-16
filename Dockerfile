@@ -48,7 +48,7 @@ COPY --from=builder /app/public ./public
 
 # 安装生产依赖
 RUN npm install -g pnpm && \
-    pnpm install --prod
+    pnpm install
 
 ENV HOST=0.0.0.0
 ENV PORT=3000
