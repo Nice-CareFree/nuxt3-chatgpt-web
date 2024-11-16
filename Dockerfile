@@ -23,31 +23,30 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
 
 WORKDIR /app
 
-# 首先只复制 package.json
+# 复制 package.json
 COPY package.json ./
 
-# 安装所有依赖（包括开发依赖）
+# 安装所有依赖
 RUN pnpm install
 
-# 复制其余源代码
+# 复制源代码
 COPY . .
 
-# 验证 electron-builder 是否正确安装
-RUN ls -la node_modules/.bin/electron-builder
+# 执行构建 - 这里使用 nuxt build 而不是 generate
+RUN pnpm build
 
-# 执行构建 - 同时构建 web 服务和 Electron 应用
-RUN pnpm docker:build
-
-# Web 服务运行阶段
-FROM node:18-alpine AS web
+# 最终阶段
+FROM node:18-alpine
 
 WORKDIR /app
 
 # 复制构建产物和必要文件
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/electron ./electron
+COPY --from=builder /app/public ./public
 
-# 只安装生产依赖
+# 安装生产依赖
 RUN npm install -g pnpm && \
     pnpm install --prod
 
@@ -57,13 +56,5 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-# 运行 web 服务
+# 使用 node 直接运行 Nuxt 服务
 CMD ["node", ".output/server/index.mjs"]
-
-# Electron 构建产物阶段
-FROM alpine:latest AS electron
-
-WORKDIR /app
-
-# 复制 Electron 构建产物
-COPY --from=builder /app/electron-dist ./electron-dist
