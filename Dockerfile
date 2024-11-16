@@ -1,15 +1,17 @@
 # 构建阶段
-FROM node:18-alpine AS builder
+FROM node:18 AS builder  # 改用完整 node 镜像而不是 alpine
 
-# 更新软件源并安装必要工具
-RUN apk update && \
-    apk add --no-cache \
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
     git \
     python3 \
     make \
     gcc \
-    musl-dev \
-    linux-headers
+    g++ \
+    icnsutils \
+    graphicsmagick \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
@@ -19,39 +21,33 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
     pnpm config set registry https://registry.npmmirror.com/ && \
     pnpm config set progress false
 
-# 设置工作目录
 WORKDIR /app
 
 # 复制 package.json
 COPY package.json ./
 
-# 安装所有依赖
-RUN pnpm install --no-frozen-lockfile
+# 安装所有依赖(包括devDependencies)
+RUN pnpm install
 
 # 复制源代码
 COPY . .
 
-# 构建应用
-RUN pnpm build && \
-    rm -rf node_modules && \
-    pnpm install --prod --no-frozen-lockfile
+# 执行构建
+RUN pnpm electron:build
 
-# 运行阶段
-FROM node:18-alpine
+# 如果需要部署为web服务，可以添加运行阶段
+FROM node:18
 
 WORKDIR /app
 
-# 只复制必要的文件
+COPY --from=builder /app/electron-dist ./electron-dist
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package.json ./
 
-# 设置环境变量
 ENV HOST=0.0.0.0
 ENV PORT=3000
 ENV NODE_ENV=production
 
-# 暴露端口
 EXPOSE 3000
 
-# 启动命令
-CMD ["node", ".output/server/index.mjs"] 
+CMD ["node", ".output/server/index.mjs"]
