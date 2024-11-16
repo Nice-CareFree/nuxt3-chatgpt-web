@@ -2,14 +2,13 @@
 FROM node:18-alpine AS builder
 
 # 更新软件源并安装必要工具
-RUN apt-get update && \
-    apt-get install -y \
+RUN apk update && \
+    apk add --no-cache \
     git \
     python3 \
     make \
     g++ \
-    wine64 \
-    mono-complete
+    build-base
 
 # 全局安装 pnpm
 RUN npm install -g pnpm
@@ -25,18 +24,14 @@ WORKDIR /app
 # 复制 package.json
 COPY package.json ./
 
-# 安装所有依赖（包括开发依赖）
+# 安装所有依赖
 RUN pnpm install --no-frozen-lockfile
-
-# 全局安装 electron-builder
-RUN npm install -g electron-builder
 
 # 复制源代码
 COPY . .
 
 # 构建应用
 RUN pnpm build && \
-    pnpm electron:build && \
     rm -rf node_modules && \
     pnpm install --prod --no-frozen-lockfile
 
@@ -48,7 +43,6 @@ WORKDIR /app
 # 只复制必要的文件
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/electron-dist ./electron-dist
 
 # 设置环境变量
 ENV HOST=0.0.0.0
