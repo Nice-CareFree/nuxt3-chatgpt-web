@@ -1,5 +1,6 @@
 # 构建阶段
 FROM node:18 AS builder
+
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     git \
@@ -25,23 +26,29 @@ WORKDIR /app
 # 复制 package.json
 COPY package.json ./
 
-# 安装所有依赖(包括devDependencies)
+# 安装所有依赖
 RUN pnpm install
 
 # 复制源代码
 COPY . .
 
-# 执行构建
-RUN pnpm electron:build
+# 执行构建 - 这里使用 nuxt build 而不是 generate
+RUN pnpm build
 
-# 如果需要部署为web服务，可以添加运行阶段
-FROM node:18
+# 最终阶段
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/electron-dist ./electron-dist
+# 复制构建产物和必要文件
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/electron ./electron
+COPY --from=builder /app/public ./public
+
+# 安装生产依赖
+RUN npm install -g pnpm && \
+    pnpm install --prod
 
 ENV HOST=0.0.0.0
 ENV PORT=3000
@@ -49,4 +56,5 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
+# 使用 node 直接运行 Nuxt 服务
 CMD ["node", ".output/server/index.mjs"]
